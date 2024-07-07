@@ -151,3 +151,4 @@ YOLO weight and cfg path. Warning! Do not touch without knowledge on OpenCV YOLO
 |NMS_THRESH             | Threshold for Non-maxima suppression on detected objects from YOLO. The value accepts float and should be between 0 to 1. The default value is 0.2. Warning, best not to change the value without prior knowledge on YOLO and NMS|
 |FRAME_SIZE             | Frame size to be resized and used in video processing. The value accepts integers and should be between 480 to 1920. The default value is 720.|
 |TRACK_MAX_AGE          | Tracker max missing age before removing in terms of seconds. The value accepts integers. The default value is 3. Warning! Do not change the value without prior knowledge on Deep SORT and object detection on video.
+# Crowd-Analytics
