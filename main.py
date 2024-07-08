@@ -22,7 +22,6 @@ from deep_sort.tracker import Tracker
 from deep_sort import generate_detections as gdet
 from datetime import datetime
 
-
 # Read from video
 IS_CAM = VIDEO_CONFIG["IS_CAM"]
 cap = cv2.VideoCapture(VIDEO_CONFIG["VIDEO_CAP"])
