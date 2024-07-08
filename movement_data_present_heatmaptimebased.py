@@ -29,6 +29,10 @@ def calculate_grid_heatmap_scores(heatmap, grid_size):
 
     return heatmap_scores
 
+# Function to get cell name (e.g., A1, A2, B1, etc.)
+def get_cell_name(row, col):
+    return f"{chr(65 + row)}{col + 1}"  # A is 65 in ASCII, +1 for 1-based index
+
 tracks = []
 with open('processed_data/movement_data.csv', 'r') as file:
     reader = csv.reader(file, delimiter=',')
@@ -132,10 +136,124 @@ heatmap_frame = cv2.addWeighted(heatmap, 0.75, heatmap_frame, 0.25, 1)
 heatmap_scores = calculate_grid_heatmap_scores(heatmap, grid_size)
 print("Grid Heatmap Scores:")
 for i, score in enumerate(heatmap_scores):
-    print(f"Cell {i}: {score}")
+    cell_name = get_cell_name(i // grid_size, i % grid_size)
+    print(f"{cell_name}: {score}")
+
+# Draw grid lines and annotate cells
+cell_height = tracks_frame.shape[0] // grid_size
+cell_width = tracks_frame.shape[1] // grid_size
+
+# Draw vertical lines and cell names on tracks_frame
+for i in range(1, grid_size):
+    x = i * cell_width
+    cv2.line(tracks_frame, (x, 0), (x, tracks_frame.shape[0]), (0, 255, 0), 2)
+    cv2.putText(tracks_frame, chr(65 + i), (x + 100, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+# Draw horizontal lines and cell names on tracks_frame
+for j in range(1, grid_size):
+    y = j * cell_height
+    cv2.line(tracks_frame, (0, y), (tracks_frame.shape[1], y), (0, 255, 0), 2)
+    cv2.putText(tracks_frame, str(j + 1), (10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+# Draw vertical lines and cell names on heatmap_frame
+for i in range(1, grid_size):
+    x = i * cell_width
+    cv2.line(heatmap_frame, (x, 0), (x, heatmap_frame.shape[0]), (0, 255, 0), 2)
+    cv2.putText(heatmap_frame, chr(65 + i), (x + 100, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+# Draw horizontal lines and cell names on heatmap_frame
+for j in range(1, grid_size):
+    y = j * cell_height
+    cv2.line(heatmap_frame, (0, y), (heatmap_frame.shape[1], y), (0, 255, 0), 2)
+    cv2.putText(heatmap_frame, str(j + 1), (10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
 cv2.imshow("Movement Tracks", tracks_frame)
 cv2.imshow("Stationary Location Heatmap", heatmap_frame)
 cv2.waitKey()
 cv2.destroyAllWindows()
 cap.release()
+# ____________________
+
+
+# import cv2
+# import numpy as np
+# import csv
+# import math
+# import imutils
+# import json
+# from config import VIDEO_CONFIG
+
+# # Function to calculate heatmap score
+# def calculate_heatmap_score(heatmap):
+#     return np.sum(heatmap)
+
+# # Function to calculate heatmap score for specific grid cells
+# def calculate_grid_heatmap_scores(heatmap, grid_size):
+#     heatmap_scores = []
+#     height, width = heatmap.shape[:2]
+#     cell_height = height // grid_size
+#     cell_width = width // grid_size
+
+#     for i in range(grid_size):
+#         for j in range(grid_size):
+#             cell_heatmap = heatmap[i*cell_height:(i+1)*cell_height, j*cell_width:(j+1)*cell_width]
+#             score = calculate_heatmap_score(cell_heatmap)
+#             heatmap_scores.append(score)
+
+#     return heatmap_scores
+
+# # Function to get cell name (e.g., A1, A2, B1, etc.)
+# def get_cell_name(row, col):
+#     return f"{chr(65 + row)}{col + 1}"  # A is 65 in ASCII, +1 for 1-based index
+
+# # Load video and JSON data
+# cap = cv2.VideoCapture(VIDEO_CONFIG["VIDEO_CAP"])
+# with open('processed_data/video_data.json', 'r') as file:
+#     data = json.load(file)
+#     vid_fps = data["VID_FPS"]
+#     frame_size = data["PROCESSED_FRAME_SIZE"]
+
+# # Define grid and interval parameters
+# grid_size = 5
+# interval_seconds = 10
+# frames_per_interval = int(vid_fps * interval_seconds)
+# total_intervals = int(math.ceil(cap.get(cv2.CAP_PROP_FRAME_COUNT) / frames_per_interval))
+
+# # Prepare data structure for storing scores
+# scores_by_time = {i: [0] * (grid_size ** 2) for i in range(total_intervals)}
+
+# # Process video frames by intervals
+# current_interval = 0
+# frame_count = 0
+
+# while True:
+#     ret, frame = cap.read()
+#     if not ret:
+#         break
+
+#     # Resize and process frame
+#     frame = imutils.resize(frame, width=frame_size)
+#     # Generate a basic heatmap (for demonstration, replace with actual heatmap logic)
+#     heatmap = np.random.randint(0, 256, (frame.shape[0], frame.shape[1]), dtype=np.uint8)
+
+#     # Accumulate heatmap scores for the current interval
+#     grid_scores = calculate_grid_heatmap_scores(heatmap, grid_size)
+#     for i, score in enumerate(grid_scores):
+#         scores_by_time[current_interval][i] += score
+
+#     frame_count += 1
+#     if frame_count % frames_per_interval == 0:
+#         current_interval += 1
+
+# cap.release()
+
+# # Debug: print some data to see what's being captured
+# print("Sample scores from the first interval:", scores_by_time[0])
+
+# # Save results to CSV
+# csv_path = './processed_data/heatmap_grid_output.csv'
+# with open(csv_path, 'w', newline='') as file:
+#     writer = csv.writer(file)
+#     writer.writerow(['Time Interval'] + [f"Cell {get_cell_name(i // grid_size, i % grid_size)}" for i in range(grid_size ** 2)])
+#     for interval in range(total_intervals):
+#         writer.writerow([f"{interval * interval_seconds}-{(interval + 1) * interval_seconds} sec"] + scores_by_time[interval])
