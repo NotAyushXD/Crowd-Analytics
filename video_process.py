@@ -23,6 +23,8 @@ def _record_movement_data(movement_data_writer, movement):
 	entry_time = movement.entry 
 	exit_time = movement.exit			
 	positions = movement.positions
+	# print(positions)
+	# exit()
 	positions = np.array(positions).flatten()
 	positions = list(positions)
 	data = [track_id] + [entry_time] + [exit_time] + positions

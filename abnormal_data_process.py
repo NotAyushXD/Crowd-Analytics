@@ -59,6 +59,17 @@ for movement in useful_tracks:
         energy = int(0.5 * speed ** 2)
         energies.append(energy)
 
+# energy_data = []
+# for movement in useful_tracks:
+#   frame_index = 0
+#   for point in movement:
+#     # Calculate speed and energy as before
+#     speed = round(euclidean(point, movement[frame_index + 1]) / time_steps , 2)
+#     energy = int(0.5 * speed ** 2)
+#     # Store energy with frame index and point coordinates
+#     energy_data.append({"frame": frame_index, "x": point[0], "y": point[1], "energy": energy})
+#     frame_index += 1
+
 c = len(energies)
 print()
 print("Useful movement data: " + str(c))

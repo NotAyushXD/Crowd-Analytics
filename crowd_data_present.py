@@ -28,7 +28,7 @@ with open('processed_data/video_data.json', 'r') as file:
 	vid_fps = data["VID_FPS"]
 	start_time = data["START_TIME"]
 
-start_time= datetime.datetime.strptime(start_time, "%d/%m/%Y, %H:%M:%S")
+start_time= datetime.datetime.strptime(start_time, "%d/%m/%Y %H:%M:%S")
 time_steps = data_record_frame/vid_fps
 data_length = len(human_count)
 

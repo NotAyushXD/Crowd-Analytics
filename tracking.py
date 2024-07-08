@@ -69,7 +69,6 @@ def detect_human (net, ln, frame, encoder, tracker, time):
 		tracker.predict()
 		expired = tracker.update(detections, time)
 
-
 		# Obtain info from the tracks
 		for track in tracker.tracks:
 				if not track.is_confirmed() or track.time_since_update > 5:

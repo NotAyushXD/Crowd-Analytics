@@ -2,8 +2,8 @@ import datetime
 
 # Video Path
 VIDEO_CONFIG = {
-	"VIDEO_CAP" : "video/7.mp4",
-	"IS_CAM" : False,
+	"VIDEO_CAP" : "video/store.mp4",
+	"IS_CAM" : True,
 	"CAM_APPROX_FPS": 3,
 	"HIGH_CAM": False,
 	"START_TIME": datetime.datetime(2020, 11, 5, 0, 0, 0, 0)
@@ -36,7 +36,7 @@ SHOW_TRACKING_ID = False
 # Threshold for distance violation
 SOCIAL_DISTANCE = 50
 # Check for abnormal crowd activity
-ABNORMAL_CHECK = True
+ABNORMAL_CHECK = False
 # Min number of people to check for abnormal
 ABNORMAL_MIN_PEOPLE = 5
 # Abnormal energy level threshold
