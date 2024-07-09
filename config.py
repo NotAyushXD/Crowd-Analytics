@@ -6,7 +6,7 @@ VIDEO_CONFIG = {
 	"IS_CAM" : True,
 	"CAM_APPROX_FPS": 3,
 	"HIGH_CAM": False,
-	"START_TIME": datetime.datetime(2020, 11, 5, 0, 0, 0, 0)
+	"START_TIME": datetime.datetime(2024, 7, 9, 0, 0, 0, 0)
 }
 
 # Load YOLOv3-tiny weights and config

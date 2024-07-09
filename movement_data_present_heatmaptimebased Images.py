@@ -10,6 +10,7 @@
 # from scipy.spatial.distance import euclidean
 # from colors import RGB_COLORS, gradient_color_RGB
 # from tqdm import tqdm
+# import os
 
 # # Function to calculate heatmap score
 # def calculate_heatmap_score(heatmap):
@@ -33,6 +34,10 @@
 # # Function to get cell name (e.g., A1, A2, B1, etc.)
 # def get_cell_name(row, col):
 #     return f"{chr(65 + row)}{col + 1}"  # A is 65 in ASCII, +1 for 1-based index
+
+# def transform_perspective(frame, src_points, dst_points):
+#     M = cv2.getPerspectiveTransform(src_points, dst_points)
+#     return cv2.warpPerspective(frame, M, (frame.shape[1], frame.shape[0]))
 
 # tracks = []
 # print("Reading movement data...")
@@ -74,6 +79,13 @@
 # # Define grid parameters
 # grid_size = 5  # Adjust grid size as needed
 
+# # Perspective transformation points
+# src_points = np.float32([[0, 0], [frame_size, 0], [frame_size, frame_size], [0, frame_size]])
+# dst_points = np.float32([[0, 0], [frame_size, 0], [frame_size, frame_size], [0, frame_size]])  # Modify this according to the desired perspective
+
+# # Aggregation interval in frames
+# aggregation_interval = 10
+
 # stationary_points = []
 # movement_points = []
 # total = 0
@@ -114,6 +126,10 @@
 
 # print("Processing video and calculating heatmap scores...")
 
+# # Create output directory for heatmap images
+# heatmap_dir = 'heatmap_images'
+# os.makedirs(heatmap_dir, exist_ok=True)
+
 # # Open CSV file for writing heatmap scores
 # with open('./processed_data/heatmap_scores.csv', 'w', newline='') as csvfile:
 #     csv_writer = csv.writer(csvfile)
@@ -122,6 +138,8 @@
 
 #     frame_count = 0
 #     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+#     aggregated_heatmap = None
+#     interval_count = 0
 
 #     for _ in tqdm(range(total_frames)):
 #         ret, frame = cap.read()
@@ -131,11 +149,15 @@
 #         frame_count += 1
 #         timestamp = frame_count / vid_fps
 
-#         heatmap = np.zeros((frame.shape[0], frame.shape[1]), dtype=np.uint8)
+#         # Apply perspective transformation to the entire frame
+#         transformed_frame = transform_perspective(frame, src_points, dst_points)
+
+#         heatmap = np.zeros((transformed_frame.shape[0], transformed_frame.shape[1]), dtype=np.uint8)
 #         for points in stationary_points:
-#             draw_heatmap = np.zeros((frame.shape[0], frame.shape[1]), dtype=np.uint8)
-#             draw_blob(draw_heatmap, tuple(points[0]), points[1])
-#             heatmap = cv2.add(heatmap, draw_heatmap)
+#             if frame_count >= points[1]:  # Ensure that only relevant stationary points are considered
+#                 draw_heatmap = np.zeros((transformed_frame.shape[0], transformed_frame.shape[1]), dtype=np.uint8)
+#                 draw_blob(draw_heatmap, tuple(points[0]), points[1])
+#                 heatmap = cv2.add(heatmap, draw_heatmap)
 
 #         lo = np.array([color_start])
 #         hi = np.array([255])
@@ -151,21 +173,39 @@
 #         for row in range(heatmap.shape[0]):
 #             for col in range(heatmap.shape[1]):
 #                 if (heatmap[row][col] == np.array([0,0,0])).all():
-#                     heatmap[row][col] = frame[row][col]
+#                     heatmap[row][col] = transformed_frame[row][col]
 
-#         heatmap_frame = cv2.addWeighted(heatmap, 0.75, frame, 0.25, 1)
+#         heatmap_frame = cv2.addWeighted(heatmap, 0.75, transformed_frame, 0.25, 1)
 
-#         # Calculate grid heatmap scores for the current frame
-#         heatmap_scores = calculate_grid_heatmap_scores(heatmap, grid_size)
+#         print(aggregation_interval, frame_count)
+#         # Aggregate the heatmap over aggregation_interval frames
+#         if frame_count % aggregation_interval == 0:
+#             if aggregated_heatmap is None:
+#                 aggregated_heatmap = np.zeros_like(heatmap, dtype=np.float64)
+#             aggregated_heatmap += heatmap.astype(np.float64)
+#             interval_count += 1
 
-#         # Write heatmap scores to CSV file
-#         csv_writer.writerow([timestamp] + heatmap_scores)
+#             # Save the aggregated heatmap image every aggregation_interval frames
+#             if interval_count == aggregation_interval:
+#                 aggregated_heatmap /= aggregation_interval  # Normalize the aggregated heatmap
+#                 heatmap_scores = calculate_grid_heatmap_scores(aggregated_heatmap.astype(np.uint8), grid_size)
+#                 heatmap_image_path = os.path.join(heatmap_dir, f'heatmap_{frame_count:05d}.png')
+#                 cv2.imwrite(heatmap_image_path, cv2.addWeighted(aggregated_heatmap.astype(np.uint8), 0.75, transformed_frame, 0.25, 1))
+
+#                 # Write heatmap scores to CSV file
+#                 csv_writer.writerow([timestamp] + heatmap_scores)
+
+#                 # Reset aggregation variables
+#                 aggregated_heatmap = None
+#                 interval_count = 0
 
 # cap.release()
 # cv2.destroyAllWindows()
 # print("Processing complete.")
 
-# ________________________________
+
+
+
 
 
 import csv
@@ -204,6 +244,10 @@ def calculate_grid_heatmap_scores(heatmap, grid_size):
 # Function to get cell name (e.g., A1, A2, B1, etc.)
 def get_cell_name(row, col):
     return f"{chr(65 + row)}{col + 1}"  # A is 65 in ASCII, +1 for 1-based index
+
+def transform_perspective(frame, src_points, dst_points):
+    M = cv2.getPerspectiveTransform(src_points, dst_points)
+    return cv2.warpPerspective(frame, M, (frame.shape[1], frame.shape[0]))
 
 tracks = []
 print("Reading movement data...")
@@ -245,8 +289,12 @@ scale = 1.5
 # Define grid parameters
 grid_size = 5  # Adjust grid size as needed
 
-# Aggregation interval in seconds
-aggregation_interval = 60  # Change this value to adjust the aggregation interval
+# Perspective transformation points
+src_points = np.float32([[0, 0], [frame_size, 0], [frame_size, frame_size], [0, frame_size]])
+dst_points = np.float32([[0, 0], [frame_size, 0], [frame_size, frame_size], [0, frame_size]])  # Modify this according to the desired perspective
+
+# Aggregation interval in frames
+aggregation_interval = 10
 
 stationary_points = []
 movement_points = []
@@ -288,6 +336,10 @@ def draw_blob(frame, coordinates, time):
 
 print("Processing video and calculating heatmap scores...")
 
+# Create output directory for heatmap images
+heatmap_dir = 'heatmap_images'
+os.makedirs(heatmap_dir, exist_ok=True)
+
 # Open CSV file for writing heatmap scores
 with open('./processed_data/heatmap_scores.csv', 'w', newline='') as csvfile:
     csv_writer = csv.writer(csvfile)
@@ -307,11 +359,15 @@ with open('./processed_data/heatmap_scores.csv', 'w', newline='') as csvfile:
         frame_count += 1
         timestamp = frame_count / vid_fps
 
-        heatmap = np.zeros((frame.shape[0], frame.shape[1]), dtype=np.uint8)
+        # Apply perspective transformation to the entire frame
+        transformed_frame = transform_perspective(frame, src_points, dst_points)
+
+        heatmap = np.zeros((transformed_frame.shape[0], transformed_frame.shape[1]), dtype=np.uint8)
         for points in stationary_points:
-            draw_heatmap = np.zeros((frame.shape[0], frame.shape[1]), dtype=np.uint8)
-            draw_blob(draw_heatmap, tuple(points[0]), points[1])
-            heatmap = cv2.add(heatmap, draw_heatmap)
+            if frame_count >= points[1]:  # Ensure that only relevant stationary points are considered
+                draw_heatmap = np.zeros((transformed_frame.shape[0], transformed_frame.shape[1]), dtype=np.uint8)
+                draw_blob(draw_heatmap, tuple(points[0]), points[1])
+                heatmap = cv2.add(heatmap, draw_heatmap)
 
         lo = np.array([color_start])
         hi = np.array([255])
@@ -327,29 +383,29 @@ with open('./processed_data/heatmap_scores.csv', 'w', newline='') as csvfile:
         for row in range(heatmap.shape[0]):
             for col in range(heatmap.shape[1]):
                 if (heatmap[row][col] == np.array([0,0,0])).all():
-                    heatmap[row][col] = frame[row][col]
+                    heatmap[row][col] = transformed_frame[row][col]
 
-        heatmap_frame = cv2.addWeighted(heatmap, 0.75, frame, 0.25, 1)
+        heatmap_frame = cv2.addWeighted(heatmap, 0.75, transformed_frame, 0.25, 1)
 
-        # Calculate grid heatmap scores for the current frame
-        heatmap_scores = calculate_grid_heatmap_scores(heatmap, grid_size)
+        # Aggregate the heatmap over aggregation_interval frames
+        if aggregated_heatmap is None:
+            aggregated_heatmap = np.zeros_like(heatmap, dtype=np.float64)
+        aggregated_heatmap += heatmap.astype(np.float64)
+        interval_count += 1
 
-        # Write heatmap scores to CSV file
-        csv_writer.writerow([timestamp] + heatmap_scores)
+        # Save the aggregated heatmap image every aggregation_interval frames
+        if interval_count == aggregation_interval:
+            aggregated_heatmap /= aggregation_interval  # Normalize the aggregated heatmap
+            heatmap_scores = calculate_grid_heatmap_scores(aggregated_heatmap.astype(np.uint8), grid_size)
+            heatmap_image_path = os.path.join(heatmap_dir, f'heatmap_{frame_count:05d}.png')
+            cv2.imwrite(heatmap_image_path, cv2.addWeighted(aggregated_heatmap.astype(np.uint8), 0.75, transformed_frame, 0.25, 1))
 
-        # # Aggregate heatmaps
-        # if aggregated_heatmap is None:
-        #     aggregated_heatmap = heatmap.copy()
-        # else:
-        #     aggregated_heatmap = cv2.add(aggregated_heatmap, heatmap)
+            # Write heatmap scores to CSV file
+            csv_writer.writerow([timestamp] + heatmap_scores)
 
-        # if frame_count % (vid_fps * aggregation_interval) == 0:
-        #     interval_count += 1
-        #     # Save the aggregated heatmap
-        #     save_path = f'./processed_data/aggregated_heatmap_{interval_count}.png'
-        #     cv2.imwrite(save_path, aggregated_heatmap)
-        #     # Reset the aggregated heatmap
-        #     aggregated_heatmap = None
+            # Reset aggregation variables
+            aggregated_heatmap = None
+            interval_count = 0
 
 cap.release()
 cv2.destroyAllWindows()
