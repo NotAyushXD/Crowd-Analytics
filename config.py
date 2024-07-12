@@ -2,7 +2,7 @@ import datetime
 
 # Video Path
 VIDEO_CONFIG = {
-	"VIDEO_CAP" : "video/store.mp4",
+	"VIDEO_CAP" : "video/cafeteriavideo_rotated.mp4",
 	"IS_CAM" : True,
 	"CAM_APPROX_FPS": 3,
 	"HIGH_CAM": False,
@@ -10,9 +10,14 @@ VIDEO_CONFIG = {
 }
 
 # Load YOLOv3-tiny weights and config
+# YOLO_CONFIG = {
+# 	"WEIGHTS_PATH" : "YOLOv4-tiny/yolov4-tiny.weights",
+# 	"CONFIG_PATH" : "YOLOv4-tiny/yolov4-tiny.cfg"
+# }
+
 YOLO_CONFIG = {
-	"WEIGHTS_PATH" : "YOLOv4-tiny/yolov4-tiny.weights",
-	"CONFIG_PATH" : "YOLOv4-tiny/yolov4-tiny.cfg"
+	"WEIGHTS_PATH" : "YOLOv7-tiny/yolov7-tiny.weights",
+	"CONFIG_PATH" : "YOLOv7-tiny/yolov7-tiny.cfg"
 }
 # Show individuals detected
 SHOW_PROCESSING_OUTPUT = True

@@ -337,20 +337,6 @@ with open('./processed_data/heatmap_scores.csv', 'w', newline='') as csvfile:
         # Write heatmap scores to CSV file
         csv_writer.writerow([timestamp] + heatmap_scores)
 
-        # # Aggregate heatmaps
-        # if aggregated_heatmap is None:
-        #     aggregated_heatmap = heatmap.copy()
-        # else:
-        #     aggregated_heatmap = cv2.add(aggregated_heatmap, heatmap)
-
-        # if frame_count % (vid_fps * aggregation_interval) == 0:
-        #     interval_count += 1
-        #     # Save the aggregated heatmap
-        #     save_path = f'./processed_data/aggregated_heatmap_{interval_count}.png'
-        #     cv2.imwrite(save_path, aggregated_heatmap)
-        #     # Reset the aggregated heatmap
-        #     aggregated_heatmap = None
-
 cap.release()
 cv2.destroyAllWindows()
 print("Processing complete.")
