@@ -2,7 +2,8 @@ import datetime
 
 # Video Path
 VIDEO_CONFIG = {
-	"VIDEO_CAP" : "video/cafeteriavideo_rotated.mp4",
+	"VIDEO_CAP" : "video/store.mp4",
+	# "VIDEO_CAP" : "video/cafeteriavideo_rotated.mp4",
 	"IS_CAM" : True,
 	"CAM_APPROX_FPS": 3,
 	"HIGH_CAM": False,
@@ -16,8 +17,8 @@ VIDEO_CONFIG = {
 # }
 
 YOLO_CONFIG = {
-	"WEIGHTS_PATH" : "YOLOv7-tiny/yolov7-tiny.weights",
-	"CONFIG_PATH" : "YOLOv7-tiny/yolov7-tiny.cfg"
+	"WEIGHTS_PATH" : "YOLOv4-tiny/yolov4-tiny.weights",
+	"CONFIG_PATH" : "YOLOv4-tiny/yolov4-tiny.cfg"
 }
 # Show individuals detected
 SHOW_PROCESSING_OUTPUT = True
@@ -37,11 +38,11 @@ SD_CHECK = False
 # Show violation count
 SHOW_VIOLATION_COUNT = False
 # Show tracking id
-SHOW_TRACKING_ID = False
+SHOW_TRACKING_ID = True
 # Threshold for distance violation
 SOCIAL_DISTANCE = 50
 # Check for abnormal crowd activity
-ABNORMAL_CHECK = False
+ABNORMAL_CHECK = True
 # Min number of people to check for abnormal
 ABNORMAL_MIN_PEOPLE = 5
 # Abnormal energy level threshold
